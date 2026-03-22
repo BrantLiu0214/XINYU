@@ -1,0 +1,104 @@
+<think> tag leakage: 0
+Reasoning marker hits: 1
+  [79] anxiety x venting | ['符合要求']
+  在体制内干了快五年，越来越找不到自己的位置，每天都在扮演符合要求的角色，真的快绷不住了
+
+=== Previously flagged records ===
+[79] anxiety x venting
+在体制内干了快五年，越来越找不到自己的位置，每天都在扮演符合要求的角色，真的快绷不住了
+---
+[324] anxiety x seeking_empathy
+我刚搬到这个城市当老师，备课怕不符合这边要求，跟家长沟通也紧张得不行，真的有点慌，好想有人能理解我现在的心情
+---
+
+=== 30 random samples ===
+[1577] fear x crisis | risk=True intensity=0.85
+我最近查出身体有严重问题，要是我垮了，公司和家里人可怎么办啊，我现在每天都怕得不行……
+---
+[1722] fear x information_seeking | risk=False intensity=0.7
+我最近快一个月天天失眠，白天还要带娃做家务，真的好害怕自己熬垮，想问问有没有适合全职妈妈的改善失眠的办法呀？
+---
+[165] anxiety x seeking_advice | risk=False intensity=0.7
+我都退休了还报了老年书法班，最近总担心写不好，作业都赶不上进度，您说我该怎么调整才好啊？
+---
+[1060] anger x venting | risk=False intensity=0.7
+真的太气人了！刚在职场好不容易站稳脚，家里又跟爸妈闹僵，他们根本不懂我有多难，越想越窝火！
+---
+[2094] hopelessness x venting | risk=False intensity=0.7
+我腿有残疾，好不容易找了份合适的工作，现在天天熬到很晚，实在扛不住，感觉以后都没指望了
+---
+[1990] shame x self_disclosure | risk=False intensity=0.6
+其实我一直没好意思跟人说，总觉得自己没做好妈妈和妻子的角色，才让家里老是闹矛盾。
+---
+[1658] fear x self_disclosure | risk=False intensity=0.7
+这阵子天天琢磨未来的职业转型规划，越想越害怕，怕选错方向之后过得不顺心
+---
+[1242] anger x crisis | risk=True intensity=0.9
+我天天围着孩子转，现在急性胃炎犯了连热饭都吃不上，老公还骂我矫情，我真的快撑不住了！
+---
+[1952] shame x self_disclosure | risk=False intensity=0.7
+我作为职场新人本来就天天忙得脚不沾地，还和男朋友闹了矛盾，连感情和工作都顾不好，真觉得自己特别差劲
+---
+[1466] fear x seeking_advice | risk=False intensity=0.7
+我在体制内干了快五年，越来越摸不清自己到底适不适合这份工作，每天都特别慌，不知道该怎么选才好
+---
+[2389] hopelessness x seeking_empathy | risk=False intensity=0.6
+来城里打工快两年了，天天加班到深夜还被领导挑刺，房租又涨了，感觉自己啥都做不好，根本没什么盼头了
+---
+[894] sadness x crisis | risk=True intensity=0.9
+我坐轮椅想找以前的朋友聚聚，他们都刻意避开我，连微信都不回我，我真的撑不住了……
+---
+[2067] shame x information_seeking | risk=False intensity=0.6
+我从农村来城里打工没俩月，跟同事相处总怕自己言行土气被笑话，不知道该怎么跟他们正常交流，想问问该怎么做才好？
+---
+[570] sadness x venting | risk=False intensity=0.7
+和合伙人因为理念不合吵了好几次，团队现在人心惶惶的，我每天忙到深夜却提不起劲，真的好难受啊
+---
+[1154] anger x venting | risk=False intensity=0.75
+既要盯公司的业务进度，又要天天照顾生病卧床的老母亲，连续快一个月没睡过整觉，连个搭把手的人都没有，真的越想越气！
+---
+[572] sadness x venting | risk=False intensity=0.7
+我在国外留学生了重病，身边没个人照顾，连帮我买饭的人都没有，真的好难过。
+---
+[388] anxiety x crisis | risk=True intensity=0.9
+我刚毕业搬到这个陌生城市快一周了，工作没着落，房租马上要交了，今晚又熬到三点没睡着，我真的快撑不住了
+---
+[2532] hopelessness x crisis | risk=True intensity=0.85
+离婚后我就没什么能交心的朋友了，现在连同事都排挤我，活着一点盼头都没有，实在撑不下去了
+---
+[1026] sadness x information_seeking | risk=False intensity=0.6
+我做护士快一年了，总觉得自己配不上这份工作，想问问怎么才能建立对自己医护身份的认同感，心里挺难受的。
+---
+[2181] hopelessness x venting | risk=False intensity=0.7
+我就是个没用的应届毕业生，天天被老员工刁难甩锅，连辞职都没勇气，感觉未来一点盼头都没有...
+---
+[2888] neutral x self_disclosure | risk=False intensity=0.3
+我刚入职两个多月，这阵子在公司里被老同事刻意排挤刁难，不过我暂时还不知道该怎么应对。
+---
+[2465] hopelessness x crisis | risk=True intensity=0.9
+我刚送走了最疼我的爷爷，现在连自由职业的活都不想碰，觉得活着一点意思都没有，真的撑不下去了
+---
+[601] sadness x venting | risk=False intensity=0.7
+这阵子既要应付单位的各种事务，还要挤时间准备在职硕士的毕业论文，天天熬到很晚，心里堵得慌，真的太难受了。
+---
+[1270] anger x crisis | risk=True intensity=0.85
+我熬了大半年的个人画展被临时取消，还被合作方倒打一耙，真的快撑不住了！
+---
+[404] anxiety x self_disclosure | risk=False intensity=0.7
+我是一名插画师，最近一直在纠结自己的创作风格到底算不算真正的艺术，每天都忍不住胡思乱想，心里特别慌。
+---
+[2989] neutral x information_seeking | risk=False intensity=0.3
+你好，我是刚分手的职场新人，想问问有没有适合既要上班又刚失恋的人的情绪调节小技巧呀？
+---
+[302] anxiety x seeking_empathy | risk=False intensity=0.7
+我创业快三年了，现在却越来越分不清自己到底想要什么，每天都焦虑得不行，真的有点不知道该怎么撑下去了
+---
+[2801] neutral x venting | risk=False intensity=0.5
+这阵子天天围着孩子和家务打转，连好好喝杯茶的空都没有，就觉得日子过得有点没奔头
+---
+[1352] anger x self_disclosure | risk=False intensity=0.7
+我刚移居过来创业，找了好几家合作方都不靠谱，当地的办事流程又繁琐，真的越想越气！
+---
+[1933] shame x self_disclosure | risk=False intensity=0.7
+我照顾生病的老母亲快两年了，偶尔没忍住冲她发了脾气，过后又特别自责，觉得自己根本不是个合格的照顾者。
+---

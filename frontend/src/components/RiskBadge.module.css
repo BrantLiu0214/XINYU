@@ -1,0 +1,18 @@
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.small {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.35rem;
+}
+
+.L0 { background: #dcfce7; color: #166534; }
+.L1 { background: #fef9c3; color: #854d0e; }
+.L2 { background: #ffedd5; color: #9a3412; }
+.L3 { background: #fee2e2; color: #991b1b; }

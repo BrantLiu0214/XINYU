@@ -1,0 +1,12 @@
+Text length stats:
+  min=21, max=80, mean=45.6, median=45.0
+
+Very short texts (<8 chars): 0
+
+Very long texts (>120 chars): 0
+
+Emotion score sum issues: 0
+
+risk_flag=True but non-crisis intent (no keywords): 0
+
+Intensity out of range: 0

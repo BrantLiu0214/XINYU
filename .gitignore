@@ -1,0 +1,101 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# mypy / ruff / pyright
+.mypy_cache/
+.ruff_cache/
+pyrightconfig.json
+
+# ── Environment & Secrets ─────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Database ──────────────────────────────────────────────────────────────────
+*.sqlite3
+*.db
+
+# ── NLP / ML Artifacts ────────────────────────────────────────────────────────
+# Trained model weights (large binary files — share via cloud storage)
+nlp/artifacts/
+nlp/runs/
+nlp/checkpoints/
+*.safetensors
+*.pt
+*.bin
+*.onnx
+
+# Hugging Face cache
+.cache/
+
+# ── Data ──────────────────────────────────────────────────────────────────────
+# Raw and processed datasets (may contain sensitive content)
+data/raw/
+data/processed/
+# Keep scripts and results
+!data/scripts/
+!data/crisis_probe.jsonl
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+generation.log
+
+# ── Frontend ──────────────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# ── IDE & OS ──────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.suo
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+# Claude Code internal files
+.claude/
+
+# Temporary review files
+review_chunk_*.txt
+review_focus.txt
+=*
+
+# ── Internal governance & documents ───────────────────────────────────────────
+# Plan documents (internal, not for repo)
+plan/
+
+# Root-level markdown docs — only docs/ and README.md are public
+/*.md
+!README.md

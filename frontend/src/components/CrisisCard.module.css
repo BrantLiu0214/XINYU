@@ -1,0 +1,52 @@
+.card {
+  border-left: 4px solid #dc2626;
+  background: #fff1f2;
+  border-radius: 0 8px 8px 0;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.header {
+  font-weight: 700;
+  color: #991b1b;
+  margin-bottom: 0.5rem;
+}
+
+.noResource {
+  color: #7f1d1d;
+  margin: 0;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  color: #1e293b;
+}
+
+.phone {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.link {
+  color: #1d4ed8;
+  word-break: break-all;
+}
+
+.desc {
+  color: #64748b;
+  font-size: 0.8rem;
+  width: 100%;
+}

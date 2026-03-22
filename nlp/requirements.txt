@@ -1,0 +1,11 @@
+# NLP training and evaluation dependencies
+# Install separately from backend/requirements.txt:
+#   pip install -r nlp/requirements.txt
+# These are offline-training dependencies and must NOT be added to the backend service.
+
+torch>=2.1,<3.0
+transformers>=4.40,<5.0
+datasets>=2.19,<3.0
+scikit-learn>=1.4,<2.0
+evaluate>=0.4,<1.0
+accelerate>=0.29,<1.0

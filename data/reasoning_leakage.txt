@@ -1,0 +1,70 @@
+Records with reasoning-like language: 2 / 3000
+
+[79] anxiety x venting | markers: ['符合']
+在体制内干了快五年，越来越找不到自己的位置，每天都在扮演符合要求的角色，真的快绷不住了
+---
+[324] anxiety x seeking_empathy | markers: ['符合']
+我刚搬到这个城市当老师，备课怕不符合这边要求，跟家长沟通也紧张得不行，真的有点慌，好想有人能理解我现在的心情
+---
+
+=== Random sample (20 records) ===
+hopelessness x crisis | risk=True intensity=0.9
+我作为留学生申研全被拒了，家里还逼我马上回国，完全看不到任何出路，真的撑不下去了
+---
+anxiety x information_seeking | risk=False intensity=0.7
+这阵子天天赶项目进度，整个人都焦虑得坐立难安，想问问有没有既能快速调整状态又不耽误工作的办法呀？
+---
+anxiety x venting | risk=False intensity=0.7
+我这慢性病本来就够闹心的，同事还总说我借病摸鱼，家里人也不理解我，越想越焦虑，真的快憋坏了
+---
+anger x venting | risk=False intensity=0.85
+我辛辛苦苦拿到的大厂实习居然被裁员了，熬了好几晚赶的项目全白做了，真的越想越气！
+---
+sadness x information_seeking | risk=False intensity=0.5
+我刚搬到这个新城市，作为靠轮椅出行的残障人士，不知道去哪找合适的无障碍公共设施，心里挺难过的。
+---
+sadness x crisis | risk=True intensity=0.9
+我已经连轴转快一个月了，照顾的重症患者还是没能挺过来，现在整个人都垮了，真的撑不下去了
+---
+sadness x venting | risk=False intensity=0.7
+我本来盼着能顺利比完这次全国锦标赛，结果突然查出这个重病，之前熬的所有训练都像白搭了，心里堵得难受。
+---
+anxiety x self_disclosure | risk=False intensity=0.7
+最近跟室友相处总觉得很别扭，我老是担心自己说错话惹她们不高兴，整个人都有点紧绷绷的。
+---
+hopelessness x self_disclosure | risk=False intensity=0.7
+已经连轴转照顾重症患者三个多月了，感觉自己快撑不住了，好像再也看不到能喘口气的盼头。
+---
+hopelessness x venting | risk=False intensity=0.8
+我这慢性病拖了这么久，家里还天天因为我拌嘴，真的看不到一点盼头，感觉熬不下去了
+---
+anxiety x crisis | risk=True intensity=0.85
+我有慢性肾炎，这次执业药师考试又没通过，天天焦虑得睡不着，感觉自己快撑不下去了。
+---
+hopelessness x seeking_empathy | risk=False intensity=0.7
+刚又查出了新的健康问题，连去世的老伴都没能陪着我一起扛过来，感觉这辈子都没什么盼头了，真的不知道该怎么继续了
+---
+fear x information_seeking | risk=False intensity=0.7
+我是个单亲妈妈，现在连孩子奶粉钱和这个月房租都凑不齐了，特别害怕被赶出去，想问问有没有临时救助渠道呀？
+---
+anxiety x venting | risk=False intensity=0.7
+在学校天天都是一个人上课吃饭，连个能搭话的人都没有，晚上躺床上越想越慌，真的好焦虑啊
+---
+anxiety x venting | risk=False intensity=0.75
+我这阵子既要赶插画的项目deadline，家里又跟爸妈闹了挺大的矛盾，每天都焦虑得睡不着，真的快绷不住了
+---
+anxiety x crisis | risk=True intensity=0.85
+我已经连轴转快三个月了，一边赶训练进度一边照顾住院的妈妈，今晚突然绷不住了，感觉快要撑不下去了……
+---
+sadness x crisis | risk=True intensity=0.92
+我刚失去了丈夫，现在一个人带着两个年幼的孩子，真的撑不住了，不想再继续下去了
+---
+sadness x self_disclosure | risk=False intensity=0.7
+我腿残了快十年了，最近关节又疼得厉害，连下床都费劲，有时候看着自己这样就忍不住难过。
+---
+shame x information_seeking | risk=False intensity=0.7
+我作为刚移居来的老师，连和本地家长的沟通都做不好，真觉得自己很没用，想问下有没有和本地家长有效沟通的办法呀？
+---
+hopelessness x crisis | risk=True intensity=0.9
+我刚送走了最疼我的爷爷，现在连自由职业的活都不想碰，觉得活着一点意思都没有，真的撑不下去了
+---

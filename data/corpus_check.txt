@@ -1,0 +1,16 @@
+=== Records 77-82 ===
+[77] emotion=anxiety intent=venting
+     text=这慢性病每个月药费都要花不少，家里本来就不宽裕，现在连日常开销都紧巴巴的，真的有点慌
+[78] emotion=anxiety intent=venting
+     text=我这类风湿性关节炎本来就疼得睡不着，对象还跟我提分手说我太麻烦，现在天天焦虑得连饭都吃不下
+[79] emotion=anxiety intent=venting
+     text=在体制内干了快五年，越来越找不到自己的位置，每天都在扮演符合要求的角色，真的快绷不住了
+[80] emotion=anxiety intent=venting
+     text=刚来这个城市找工作快俩礼拜了，投的简历都没音讯，房租还催着交，天天心里七上八下的，憋得我难受。
+[81] emotion=anxiety intent=venting
+     text=最近天天盯创业项目熬到凌晨，躺床上翻来覆去两三个小时都睡不着，白天还要硬撑着对接投资人，真的快绷不住了
+[82] emotion=anxiety intent=venting
+     text=这阵子总忍不住想起以前的事，半夜经常惊醒，心慌得不行，真的快熬不下去了
+
+=== Marker scan (all 3000) ===
+No markers found.
