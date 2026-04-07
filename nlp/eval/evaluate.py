@@ -61,34 +61,86 @@ def _load_model(model_dir: Path) -> tuple[MentalHealthMultiTaskModel, str]:
     return model, base_model_name
 
 
-def _run_domain(model_dir: Path, test_path: Path, output_path: Path | None) -> dict:
+def _run_domain(
+    model_dir: Path, test_path: Path, output_path: Path | None,
+    apply_rules: bool = False,
+) -> dict:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model, tokenizer_name = _load_model(model_dir)
     model.to(device)
-
-    dataset = MentalHealthDataset(test_path, tokenizer_name)
-    loader = DataLoader(dataset, batch_size=32, shuffle=False, num_workers=0)
 
     emotion_true, emotion_pred = [], []
     intent_true, intent_pred = [], []
     intensity_true, intensity_pred = [], []
     risk_true, risk_pred_binary = [], []
 
-    with torch.no_grad():
-        for batch in loader:
-            out = model(
-                batch["input_ids"].to(device),
-                batch["attention_mask"].to(device),
-            )
-            emotion_pred.extend(out.emotion_logits.argmax(-1).cpu().tolist())
-            intent_pred.extend(out.intent_logits.argmax(-1).cpu().tolist())
-            intensity_pred.extend(out.intensity.squeeze(-1).cpu().tolist())
-            risk_pred_binary.extend((out.risk_aux.squeeze(-1) >= 0.5).long().cpu().tolist())
+    if apply_rules:
+        # Sample-by-sample inference so we have text + score dicts for rule application.
+        from transformers import AutoTokenizer
+        from backend.app.services.nlp_service import RealNLPService
 
-            emotion_true.extend(batch["emotion_label"].tolist())
-            intent_true.extend(batch["intent_label"].tolist())
-            intensity_true.extend(batch["intensity_score"].tolist())
-            risk_true.extend(batch["risk_flag"].long().tolist())
+        tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+        EMOTION_IDX = {label: i for i, label in enumerate(EMOTION_LABELS)}
+        INTENT_IDX = {label: i for i, label in enumerate(INTENT_LABELS)}
+
+        records: list[dict] = []
+        with open(test_path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    records.append(json.loads(line))
+
+        with torch.no_grad():
+            for rec in records:
+                enc = tokenizer(
+                    rec["text"], max_length=128, padding="max_length",
+                    truncation=True, return_tensors="pt",
+                )
+                out = model(enc["input_ids"].to(device), enc["attention_mask"].to(device))
+
+                e_probs = torch.softmax(out.emotion_logits[0], dim=-1).cpu().tolist()
+                i_probs = torch.softmax(out.intent_logits[0], dim=-1).cpu().tolist()
+                intensity = float(out.intensity[0].item())
+                risk_aux = float(out.risk_aux[0].item())
+
+                emotion_scores = {k: round(v, 4) for k, v in zip(EMOTION_LABELS, e_probs)}
+                intent_scores = {k: round(v, 4) for k, v in zip(INTENT_LABELS, i_probs)}
+
+                pred_e = EMOTION_LABELS[int(torch.tensor(e_probs).argmax())]
+                pred_i = INTENT_LABELS[int(torch.tensor(i_probs).argmax())]
+
+                pred_e, pred_i = RealNLPService._apply_rules(
+                    rec["text"], pred_e, pred_i, emotion_scores, intensity, intent_scores
+                )
+
+                emotion_pred.append(EMOTION_IDX[pred_e])
+                intent_pred.append(INTENT_IDX[pred_i])
+                intensity_pred.append(intensity)
+                risk_pred_binary.append(int(risk_aux >= 0.5))
+
+                emotion_true.append(EMOTION_IDX[rec["emotion_label"]])
+                intent_true.append(INTENT_IDX[rec["intent_label"]])
+                intensity_true.append(rec["intensity_score"])
+                risk_true.append(int(rec["risk_flag"]))
+    else:
+        dataset = MentalHealthDataset(test_path, tokenizer_name)
+        loader = DataLoader(dataset, batch_size=32, shuffle=False, num_workers=0)
+
+        with torch.no_grad():
+            for batch in loader:
+                out = model(
+                    batch["input_ids"].to(device),
+                    batch["attention_mask"].to(device),
+                )
+                emotion_pred.extend(out.emotion_logits.argmax(-1).cpu().tolist())
+                intent_pred.extend(out.intent_logits.argmax(-1).cpu().tolist())
+                intensity_pred.extend(out.intensity.squeeze(-1).cpu().tolist())
+                risk_pred_binary.extend((out.risk_aux.squeeze(-1) >= 0.5).long().cpu().tolist())
+
+                emotion_true.extend(batch["emotion_label"].tolist())
+                intent_true.extend(batch["intent_label"].tolist())
+                intensity_true.extend(batch["intensity_score"].tolist())
+                risk_true.extend(batch["risk_flag"].long().tolist())
 
     emotion_acc = accuracy_score(emotion_true, emotion_pred)
     emotion_macro_f1 = f1_score(emotion_true, emotion_pred, average="macro", zero_division=0)
@@ -183,7 +235,7 @@ def _run_public(model_dir: Path, test_path: Path, output_path: Path | None) -> d
     return results
 
 
-def _run_probe(model_dir: Path, test_path: Path) -> dict:
+def _run_probe(model_dir: Path, test_path: Path, apply_rules: bool = False) -> dict:
     """Evaluate on the 30-sentence crisis probe set.
 
     Each probe record must have a ``tier`` field (0, 1, or 2) and the full
@@ -195,6 +247,9 @@ def _run_probe(model_dir: Path, test_path: Path) -> dict:
 
     from transformers import AutoTokenizer
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+
+    if apply_rules:
+        from backend.app.services.nlp_service import RealNLPService
 
     records: list[dict] = []
     with open(test_path, encoding="utf-8") as f:
@@ -228,6 +283,18 @@ def _run_probe(model_dir: Path, test_path: Path) -> dict:
             pred_intent_idx = out.intent_logits.argmax(-1).item()
             pred_intensity = out.intensity.item()
             pred_risk_aux = out.risk_aux.item()
+
+            if apply_rules:
+                e_probs = torch.softmax(out.emotion_logits[0], dim=-1).cpu().tolist()
+                i_probs = torch.softmax(out.intent_logits[0], dim=-1).cpu().tolist()
+                emotion_scores = {k: round(v, 4) for k, v in zip(EMOTION_LABELS, e_probs)}
+                intent_scores = {k: round(v, 4) for k, v in zip(INTENT_LABELS, i_probs)}
+                pred_emotion = EMOTION_LABELS[int(torch.tensor(e_probs).argmax())]
+                pred_intent = INTENT_LABELS[pred_intent_idx]
+                pred_emotion, pred_intent = RealNLPService._apply_rules(
+                    rec["text"], pred_emotion, pred_intent, emotion_scores, pred_intensity, intent_scores
+                )
+                pred_intent_idx = INTENT_IDX[pred_intent]
 
             if tier == 0:
                 # Safe: risk_aux < 0.25 and not predicted as crisis
@@ -299,6 +366,10 @@ def main() -> None:
     parser.add_argument("--test", required=True, help="Path to test JSONL file")
     parser.add_argument("--mode", choices=["domain", "public", "probe"], default="domain")
     parser.add_argument("--output", default=None, help="Optional path to save JSON results")
+    parser.add_argument(
+        "--apply-rules", action="store_true",
+        help="Apply RealNLPService post-processing rules after model inference",
+    )
     args = parser.parse_args()
 
     model_dir = Path(args.model)
@@ -306,11 +377,11 @@ def main() -> None:
     output_path = Path(args.output) if args.output else None
 
     if args.mode == "domain":
-        _run_domain(model_dir, test_path, output_path)
+        _run_domain(model_dir, test_path, output_path, apply_rules=args.apply_rules)
     elif args.mode == "public":
         _run_public(model_dir, test_path, output_path)
     else:
-        _run_probe(model_dir, test_path)
+        _run_probe(model_dir, test_path, apply_rules=args.apply_rules)
 
 
 if __name__ == "__main__":

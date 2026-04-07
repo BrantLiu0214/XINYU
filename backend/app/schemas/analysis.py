@@ -9,6 +9,7 @@ class AnalysisResult(BaseModel):
     intensity_score: float
     risk_aux_score: float
     keyword_hits: list[str] = Field(default_factory=list)
+    low_confidence: bool = False
 
 
 class RiskAssessment(BaseModel):

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class SessionSummary(BaseModel):
@@ -13,6 +13,11 @@ class SessionSummary(BaseModel):
     started_at: datetime
     message_count: int
     dominant_emotion: str | None = None
+    visitor_username: str | None = None
+    visitor_real_name: str | None = None
+    visitor_college: str | None = None
+    visitor_student_id: str | None = None
+    visitor_is_guest: bool = False
 
 
 class AnalysisSummary(BaseModel):
@@ -67,6 +72,18 @@ class DashboardStats(BaseModel):
     l3_alerts: int
 
 
+class VisitorSummary(BaseModel):
+    visitor_id: str
+    username: str | None
+    real_name: str | None
+    college: str | None
+    student_id: str | None
+    is_guest: bool
+    created_at: datetime
+    session_count: int
+    latest_risk_level: str | None
+
+
 class SessionListResponse(BaseModel):
     sessions: list[SessionSummary]
 
@@ -77,3 +94,32 @@ class MessageListResponse(BaseModel):
 
 class AlertListResponse(BaseModel):
     alerts: list[AlertSummary]
+
+
+class VisitorListResponse(BaseModel):
+    visitors: list[VisitorSummary]
+
+
+class VisitorDetailResponse(BaseModel):
+    visitor: VisitorSummary
+    sessions: list[SessionSummary]
+
+
+class CounselorSummary(BaseModel):
+    counselor_id: str
+    username: str
+    display_name: str | None
+    college: str | None
+    is_active: bool
+    created_at: datetime
+
+
+class CounselorListResponse(BaseModel):
+    counselors: list[CounselorSummary]
+
+
+class CreateCounselorRequest(BaseModel):
+    username: str = Field(..., min_length=2, max_length=50)
+    password: str = Field(..., min_length=6, max_length=100)
+    college: str = Field(..., max_length=100)
+    display_name: str | None = Field(None, max_length=100)

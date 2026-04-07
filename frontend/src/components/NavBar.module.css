@@ -4,8 +4,11 @@
   justify-content: space-between;
   padding: 0 1.5rem;
   height: 52px;
-  background: #1e293b;
+  background: rgba(20, 30, 48, 0.96);
+  backdrop-filter: blur(12px) saturate(1.5);
+  -webkit-backdrop-filter: blur(12px) saturate(1.5);
   color: #f1f5f9;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -14,7 +17,8 @@
 .brand {
   font-weight: 700;
   font-size: 1.1rem;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  color: #e2e8f0;
 }
 
 .links {
@@ -42,7 +46,7 @@
 
 .logoutBtn {
   background: none;
-  border: 1px solid #475569;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   color: #94a3b8;
   font-size: 0.8rem;
@@ -53,5 +57,5 @@
 
 .logoutBtn:hover {
   color: #f1f5f9;
-  border-color: #94a3b8;
+  border-color: rgba(255, 255, 255, 0.25);
 }

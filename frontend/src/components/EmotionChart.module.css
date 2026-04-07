@@ -1,7 +1,7 @@
 .wrapper {
   padding: 0.75rem 0.5rem 0.5rem;
-  border-top: 1px solid #e2e8f0;
-  background: #f8fafc;
+  background: #ffffff;
+  border-radius: 0 0 12px 12px;
 }
 
 .title {

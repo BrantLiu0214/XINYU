@@ -1,15 +1,14 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { COUNSELOR_STORAGE_KEY } from './RequireAuth';
+import { Link, useLocation } from 'react-router-dom';
+import { getRole, clearAuth } from '../auth';
 import styles from './NavBar.module.css';
 
 export function NavBar() {
   const { pathname } = useLocation();
-  const navigate = useNavigate();
-  const authed = sessionStorage.getItem(COUNSELOR_STORAGE_KEY) === '1';
+  const role = getRole();
 
   function handleLogout() {
-    sessionStorage.removeItem(COUNSELOR_STORAGE_KEY);
-    navigate('/');
+    clearAuth();
+    window.location.href = '/';
   }
 
   return (
@@ -17,17 +16,17 @@ export function NavBar() {
       <span className={styles.brand}>心语 XinYu</span>
       <div className={styles.links}>
         <Link className={pathname === '/' ? styles.active : ''} to="/">对话</Link>
-        {authed ? (
-          <>
-            <Link
-              className={pathname.startsWith('/dashboard') || pathname.startsWith('/session') ? styles.active : ''}
-              to="/dashboard"
-            >
-              咨询师后台
-            </Link>
-            <button className={styles.logoutBtn} onClick={handleLogout}>退出</button>
-          </>
-        ) : null}
+        {role === 'counselor' && (
+          <Link
+            className={pathname.startsWith('/dashboard') || pathname.startsWith('/session') ? styles.active : ''}
+            to="/dashboard"
+          >
+            咨询师后台
+          </Link>
+        )}
+        {role && (
+          <button className={styles.logoutBtn} onClick={handleLogout}>退出</button>
+        )}
       </div>
     </nav>
   );

@@ -4,10 +4,12 @@
 
 body {
   margin: 0;
-  font-family: system-ui, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  background: #ffffff;
-  color: #1e293b;
+  font-family: 'Segoe UI Variable', 'Segoe UI', 'Microsoft YaHei UI',
+               'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+  background: #f0f4f8;
+  color: #1a2332;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -27,3 +29,9 @@ p {
 a {
   color: inherit;
 }
+
+/* Windows-style slim scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.18); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.28); }

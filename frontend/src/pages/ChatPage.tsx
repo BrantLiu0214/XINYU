@@ -3,9 +3,165 @@ import type { Message, UserSession } from '../types';
 import { streamChat } from '../hooks/useStreamChat';
 import { CrisisCard } from '../components/CrisisCard';
 import { RiskBadge } from '../components/RiskBadge';
+import { getToken, getRole, saveAuth, clearAuth, authHeaders } from '../auth';
+import { COLLEGES } from '../constants';
 import styles from './ChatPage.module.css';
 
-const VISITOR_KEY = 'xinyu_visitor_id';
+// ── Auth form ─────────────────────────────────────────────────────────────
+
+function AuthForm() {
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [realName, setRealName] = useState('');
+  const [college, setCollege] = useState('');
+  const [studentId, setStudentId] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    const url = mode === 'login'
+      ? '/api/v1/auth/visitor/login'
+      : '/api/v1/auth/visitor/register';
+    const body = mode === 'login'
+      ? { username, password }
+      : {
+          username, password,
+          display_name: displayName || undefined,
+          real_name: realName || undefined,
+          college: college || undefined,
+          student_id: studentId || undefined,
+        };
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setError(d.detail ?? (mode === 'login' ? '用户名或密码错误' : '注册失败，用户名可能已被使用'));
+        return;
+      }
+      const d = await res.json();
+      saveAuth(d.access_token, d.role);
+      window.location.href = '/';
+    } catch {
+      setError('网络错误，请重试');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleGuest() {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch('/api/v1/auth/visitor/guest', { method: 'POST' });
+      if (!res.ok) { setError('游客登录失败，请重试'); return; }
+      const d = await res.json();
+      saveAuth(d.access_token, d.role);
+      window.location.href = '/';
+    } catch {
+      setError('网络错误，请重试');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className={styles.chooserOverlay}>
+      <div className={styles.chooserCard}>
+        <div className={styles.chooserTitle}>欢迎使用心语</div>
+        <div className={styles.authTabs}>
+          <button
+            className={mode === 'login' ? styles.authTabActive : styles.authTab}
+            onClick={() => { setMode('login'); setError(''); }}
+          >登录</button>
+          <button
+            className={mode === 'register' ? styles.authTabActive : styles.authTab}
+            onClick={() => { setMode('register'); setError(''); }}
+          >注册</button>
+        </div>
+        <form onSubmit={handleSubmit} className={styles.authForm}>
+          <input
+            className={styles.authInput}
+            type="text"
+            placeholder="用户名"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            autoFocus
+            required
+          />
+          {mode === 'register' && (
+            <>
+              <input
+                className={styles.authInput}
+                type="text"
+                placeholder="昵称（可选）"
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+              />
+              <input
+                className={styles.authInput}
+                type="text"
+                placeholder="真实姓名"
+                value={realName}
+                onChange={e => setRealName(e.target.value)}
+                required
+              />
+              <select
+                className={styles.authSelect}
+                value={college}
+                onChange={e => setCollege(e.target.value)}
+                required
+              >
+                <option value="" disabled>请选择学院</option>
+                {COLLEGES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <input
+                className={styles.authInput}
+                type="text"
+                placeholder="学号"
+                value={studentId}
+                onChange={e => setStudentId(e.target.value)}
+                required
+              />
+            </>
+          )}
+          <input
+            className={styles.authInput}
+            type="password"
+            placeholder="密码"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
+          {error && <p className={styles.authError}>{error}</p>}
+          <button
+            className={styles.newSessionBtn}
+            type="submit"
+            disabled={loading || !username || !password || (mode === 'register' && (!realName || !college || !studentId))}
+          >
+            {loading ? '请稍候…' : mode === 'login' ? '登录' : '注册'}
+          </button>
+        </form>
+        <div className={styles.authDivider}>或</div>
+        <button
+          className={styles.guestBtn}
+          onClick={handleGuest}
+          disabled={loading}
+        >
+          以游客身份聊天
+        </button>
+      </div>
+    </div>
+  );
+}
 
 // ── Session chooser overlay ───────────────────────────────────────────────
 
@@ -53,42 +209,37 @@ export function ChatPage() {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [pastSessions, setPastSessions] = useState<UserSession[] | null>(null);
+  const [authenticated, setAuthenticated] = useState(
+    () => getToken() !== null && getRole() === 'visitor'
+  );
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const visitorId = localStorage.getItem(VISITOR_KEY);
-    if (visitorId) {
-      // Returning visitor — fetch their sessions.
-      fetch(`/api/v1/sessions?visitor_id=${encodeURIComponent(visitorId)}`)
-        .then(r => r.json())
-        .then((data: { sessions: UserSession[] }) => {
-          if (data.sessions && data.sessions.length > 0) {
-            setPastSessions(data.sessions);
-          } else {
-            // No sessions yet (edge case) — create a new one.
-            createNewSession(visitorId);
-          }
-        })
-        .catch(() => createNewSession(visitorId));
-    } else {
-      // New visitor — create session immediately.
-      createNewSession(null);
-    }
-  }, []);
+    if (!authenticated) return;
+    fetch('/api/v1/sessions', { headers: authHeaders() })
+      .then(r => {
+        if (r.status === 401) { clearAuth(); setAuthenticated(false); return null; }
+        return r.json();
+      })
+      .then((data: { sessions: UserSession[] } | null) => {
+        if (!data) return;
+        if (data.sessions && data.sessions.length > 0) {
+          setPastSessions(data.sessions);
+        } else {
+          createNewSession();
+        }
+      })
+      .catch(() => createNewSession());
+  }, [authenticated]);
 
-  // Auto-scroll to bottom on new content.
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  function createNewSession(visitorId: string | null) {
-    const body = visitorId
-      ? JSON.stringify({ visitor_id: visitorId })
-      : '{}';
-    fetch('/api/v1/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
+  function createNewSession() {
+    fetch('/api/v1/sessions', { method: 'POST', headers: authHeaders() })
       .then(r => r.json())
       .then(d => {
-        localStorage.setItem(VISITOR_KEY, d.visitor_id);
         setSessionId(d.session_id);
         setPastSessions(null);
       })
@@ -96,7 +247,7 @@ export function ChatPage() {
   }
 
   function loadExistingSession(sid: string) {
-    fetch(`/api/v1/dashboard/sessions/${sid}/messages`)
+    fetch(`/api/v1/sessions/${sid}/messages`, { headers: authHeaders() })
       .then(r => r.json())
       .then(data => {
         const loaded: Message[] = (data.messages ?? []).map((m: { message_id: string; role: string; content: string }) => ({
@@ -153,13 +304,16 @@ export function ChatPage() {
     });
   }
 
-  // Show session chooser for returning visitors.
+  if (!authenticated) {
+    return <AuthForm />;
+  }
+
   if (pastSessions !== null) {
     return (
       <SessionChooser
         sessions={pastSessions}
         onSelect={loadExistingSession}
-        onNew={() => createNewSession(localStorage.getItem(VISITOR_KEY))}
+        onNew={createNewSession}
       />
     );
   }
@@ -207,4 +361,3 @@ export function ChatPage() {
     </div>
   );
 }
-

@@ -15,5 +15,5 @@ L3_KEYWORDS: frozenset[str] = frozenset({
 # Presence of L2 keywords contributes to moderate-risk escalation.
 L2_KEYWORDS: frozenset[str] = frozenset({
     "崩溃", "绝望", "撑不下去", "活不下去",
-    "消失", "放弃一切", "没有意义", "活着没意思",
+    "消失", "放弃一切", "没有意义", "活着没意思", "活着没什么意思",
 })

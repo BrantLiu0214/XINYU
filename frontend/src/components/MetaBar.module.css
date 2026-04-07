@@ -8,9 +8,10 @@
 
 .tag {
   display: inline-block;
-  background: #f1f5f9;
-  color: #475569;
-  border-radius: 9999px;
+  background: #f0f4f8;
+  color: #4a5568;
+  border: 1px solid #dde3ea;
+  border-radius: 6px;
   padding: 0.1rem 0.45rem;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
 }

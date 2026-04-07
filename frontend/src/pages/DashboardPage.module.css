@@ -1,10 +1,12 @@
 .page {
-  padding: 1.5rem;
-  max-width: 1100px;
+  width: 100%;
+  padding: 1.5rem 2rem;
+  max-width: 1600px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  box-sizing: border-box;
 }
 
 .loading {
@@ -25,11 +27,16 @@
 
 .statCard {
   background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 1.1rem 1.25rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  border-top: 3px solid transparent;
 }
+
+.statCardBlue  { border-top-color: #0ea5e9; }
+.statCardPurple { border-top-color: #8b5cf6; }
+.statCardAmber { border-top-color: #f59e0b; }
+.statCardRed   { border-top-color: #ef4444; }
 
 .statNumber {
   font-size: 1.75rem;
@@ -86,6 +93,27 @@
   color: #475569;
   font-weight: 600;
   white-space: nowrap;
+}
+
+/* specificity 0,2,0 — beats .table th (0,1,1) so hover and active colour apply */
+.table .thSortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s, color 0.12s;
+}
+
+.table .thSortable:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.table .thActive {
+  color: #0ea5e9;
+}
+
+.sortArrow {
+  font-size: 0.68rem;
+  opacity: 0.75;
 }
 
 .table td {
@@ -174,4 +202,153 @@
 
 .actionBtnResolve:hover {
   background: #dcfce7;
+}
+
+/* ── Tabs + Export ───────────────────────────────────────────────────────── */
+
+.tabRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tabBtn,
+.tabActive {
+  padding: 0.4rem 1rem;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.tabBtn {
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.tabActive {
+  background: #0ea5e9;
+  color: #fff;
+  font-weight: 600;
+}
+
+.exportBtn {
+  padding: 0.4rem 1rem;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.exportBtn:hover:not(:disabled) {
+  background: #f0fdf4;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.exportBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Admin panel ─────────────────────────────────────────────────────────── */
+
+.adminPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.adminCard {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+}
+
+.adminCardTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 1rem;
+}
+
+.adminForm {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.adminForm .adminError,
+.adminForm .adminSubmitBtn {
+  grid-column: 1 / -1;
+}
+
+.adminInput,
+.adminSelect {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 0.875rem;
+  outline: none;
+  background: #fff;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.adminInput:focus,
+.adminSelect:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+}
+
+.adminError {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.adminSubmitBtn {
+  padding: 0.5rem;
+  background: #0ea5e9;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.adminSubmitBtn:hover:not(:disabled) {
+  background: #0284c7;
+}
+
+.adminSubmitBtn:disabled {
+  background: #bae6fd;
+  cursor: not-allowed;
+}
+
+.superAdminBadge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #ede9fe;
+  color: #6d28d9;
 }

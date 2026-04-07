@@ -1,7 +1,12 @@
 from dataclasses import dataclass
 from functools import lru_cache
+from pathlib import Path
 
 from backend.app.core.config import Settings, get_settings
+
+# Project root is 4 levels up from this file:
+# services.py → dependencies/ → app/ → backend/ → project root
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 from backend.app.db.session import get_session_factory
 from backend.app.services.chat_service import ChatService
 from backend.app.services.context_service import ContextService
@@ -35,17 +40,22 @@ def build_container() -> AppContainer:
 
     nlp_service: NLPService
     if settings.nlp_model_path:
+        # Resolve relative paths from the project root so the server can be
+        # launched from any directory (e.g. `backend/` as documented).
+        model_path = settings.nlp_model_path
+        if not Path(model_path).is_absolute():
+            model_path = str(_PROJECT_ROOT / model_path)
         try:
             from backend.app.services.nlp_service import RealNLPService
 
-            nlp_service = RealNLPService(model_path=settings.nlp_model_path)
+            nlp_service = RealNLPService(model_path=model_path)
         except Exception as exc:  # noqa: BLE001 — graceful degradation
             import logging
 
             logging.getLogger(__name__).warning(
                 "RealNLPService failed to load (path=%r, error=%s); "
                 "falling back to StubNLPService.",
-                settings.nlp_model_path,
+                model_path,
                 exc,
             )
             nlp_service = StubNLPService()

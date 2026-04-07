@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
+from backend.app.dependencies.auth import require_visitor
 from backend.app.dependencies.services import AppContainer, get_container
 from backend.app.models.chat_session import ChatSession
 
@@ -20,6 +21,7 @@ class ChatRequest(BaseModel):
 async def stream_chat(
     session_id: str,
     body: ChatRequest,
+    visitor_id: str = Depends(require_visitor),
     container: AppContainer = Depends(get_container),
 ) -> EventSourceResponse:
     """Stream a chat turn as Server-Sent Events.
@@ -27,12 +29,12 @@ async def stream_chat(
     Event order (normal): meta → token… → complete
     Event order (high-risk): meta → alert → token… → complete
     """
-    # Pre-flight: verify session before opening the SSE connection.
-    # Once EventSourceResponse starts, headers are already sent — a 404 inside
-    # the generator cannot be surfaced as an HTTP status code.
     with container.session_factory() as db:
-        if db.get(ChatSession, session_id) is None:
+        session = db.get(ChatSession, session_id)
+        if session is None:
             raise HTTPException(status_code=404, detail="Session not found")
+        if session.visitor_id != visitor_id:
+            raise HTTPException(status_code=403, detail="无权访问此会话")
 
     async def event_generator() -> AsyncGenerator[dict, None]:
         async for evt in container.chat_service.stream_chat(session_id, body.message):

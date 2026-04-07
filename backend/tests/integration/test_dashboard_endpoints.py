@@ -9,6 +9,7 @@ from sqlalchemy.pool import StaticPool
 
 from backend.app.core.config import Settings
 from backend.app.db.base import Base
+from backend.app.dependencies.auth import require_counselor, require_visitor
 from backend.app.dependencies.services import AppContainer, get_container
 from backend.app.main import create_app
 from backend.app.models import (  # noqa: F401
@@ -79,10 +80,22 @@ def _make_container(session_factory) -> AppContainer:
 
 
 @pytest.fixture
-def client(shared_session_factory):
+def test_visitor_id(shared_session_factory) -> str:
+    """Pre-seed a visitor profile and return its ID for auth dependency override."""
+    with shared_session_factory.begin() as session:
+        visitor = VisitorProfile(display_name="Test Visitor", consent_accepted=True)
+        session.add(visitor)
+        session.flush()
+        return visitor.id
+
+
+@pytest.fixture
+def client(shared_session_factory, test_visitor_id):
     app = create_app()
     container = _make_container(shared_session_factory)
     app.dependency_overrides[get_container] = lambda: container
+    app.dependency_overrides[require_visitor] = lambda: test_visitor_id
+    app.dependency_overrides[require_counselor] = lambda: "test-counselor-id"
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
@@ -99,7 +112,7 @@ def test_list_sessions_empty(client):
 
 
 def test_list_sessions_after_create(client):
-    client.post("/api/v1/sessions", json={})
+    client.post("/api/v1/sessions")
     resp = client.get("/api/v1/dashboard/sessions")
     assert resp.status_code == 200
     sessions = resp.json()["sessions"]
@@ -109,9 +122,9 @@ def test_list_sessions_after_create(client):
 
 
 def test_list_sessions_message_count(client):
-    r = client.post("/api/v1/sessions", json={})
+    r = client.post("/api/v1/sessions")
     session_id = r.json()["session_id"]
-    client.post(f"/api/v1/chat/{session_id}/stream", json={"message": "你好"})
+    client.post(f"/api/v1/chat/{session_id}/stream", json={"message": "浣犲ソ"})
 
     resp = client.get("/api/v1/dashboard/sessions")
     session = resp.json()["sessions"][0]
@@ -119,7 +132,7 @@ def test_list_sessions_message_count(client):
 
 
 def test_get_session_messages_empty(client):
-    r = client.post("/api/v1/sessions", json={})
+    r = client.post("/api/v1/sessions")
     session_id = r.json()["session_id"]
     resp = client.get(f"/api/v1/dashboard/sessions/{session_id}/messages")
     assert resp.status_code == 200
@@ -127,9 +140,9 @@ def test_get_session_messages_empty(client):
 
 
 def test_get_session_messages_after_turn(client):
-    r = client.post("/api/v1/sessions", json={})
+    r = client.post("/api/v1/sessions")
     session_id = r.json()["session_id"]
-    client.post(f"/api/v1/chat/{session_id}/stream", json={"message": "我很难受"})
+    client.post(f"/api/v1/chat/{session_id}/stream", json={"message": "鎴戝緢闅惧彈"})
 
     resp = client.get(f"/api/v1/dashboard/sessions/{session_id}/messages")
     assert resp.status_code == 200
@@ -179,7 +192,7 @@ def test_list_alerts_after_crisis_turn(client):
         intent_scores={"crisis": 0.90, "venting": 0.10},
         intensity_score=0.95,
         risk_aux_score=0.95,
-        keyword_hits=["想死"],
+        keyword_hits=["鎯虫"],
     )
     container = _make_container.__wrapped__(factory) if hasattr(_make_container, '__wrapped__') else None
     # Build container manually with high-risk NLP stub
@@ -196,10 +209,18 @@ def test_list_alerts_after_crisis_turn(client):
                                 risk_service=rs, resource_service=rsvc, llm_provider=llm,
                                 chat_service=cs)
 
+    with factory.begin() as s:
+        visitor = VisitorProfile(display_name="HR Visitor", consent_accepted=True)
+        s.add(visitor)
+        s.flush()
+        hr_visitor_id = visitor.id
+
     app = _create_app()
     app.dependency_overrides[get_container] = lambda: hr_container
+    app.dependency_overrides[require_visitor] = lambda: hr_visitor_id
+    app.dependency_overrides[require_counselor] = lambda: "test-counselor-id"
     with TestClient(app) as c:
-        session_id = c.post("/api/v1/sessions", json={}).json()["session_id"]
+        session_id = c.post("/api/v1/sessions").json()["session_id"]
         c.post(f"/api/v1/chat/{session_id}/stream", json={"message": "我不想活了"})
         resp = c.get("/api/v1/dashboard/alerts")
 
@@ -209,3 +230,4 @@ def test_list_alerts_after_crisis_turn(client):
     assert alerts[0]["risk_level"] == "L3"
     assert alerts[0]["status"] == "open"
     assert alerts[0]["session_id"] == session_id
+

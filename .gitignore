@@ -90,6 +90,7 @@ desktop.ini
 # Temporary review files
 review_chunk_*.txt
 review_focus.txt
+tier1_debug.txt
 =*
 
 # ── Internal governance & documents ───────────────────────────────────────────
@@ -99,3 +100,5 @@ plan/
 # Root-level markdown docs — only docs/ and README.md are public
 /*.md
 !README.md
+!CLAUDE.md
+!PLANS.md

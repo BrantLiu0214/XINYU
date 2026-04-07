@@ -67,7 +67,7 @@ class MentalHealthMultiTaskModel(nn.Module):
     def __init__(self, base_model_name: str = "hfl/chinese-roberta-wwm-ext") -> None:
         super().__init__()
         self.encoder = AutoModel.from_pretrained(base_model_name)
-        self.dropout = nn.Dropout(p=0.1)
+        self.dropout = nn.Dropout(p=0.20)
 
         self.emotion_head = nn.Linear(HIDDEN_SIZE, NUM_EMOTIONS)
         self.intent_head = nn.Linear(HIDDEN_SIZE, NUM_INTENTS)

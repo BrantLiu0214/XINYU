@@ -1,4 +1,4 @@
-"""Integration tests for Module 06: session and chat HTTP endpoints."""
+﻿"""Integration tests for session and chat HTTP endpoints."""
 from __future__ import annotations
 
 import json
@@ -11,9 +11,10 @@ from sqlalchemy.pool import StaticPool
 
 from backend.app.core.config import Settings
 from backend.app.db.base import Base
+from backend.app.dependencies.auth import require_visitor
 from backend.app.dependencies.services import AppContainer, get_container
 from backend.app.main import create_app
-from backend.app.models import (  # noqa: F401 — import all models so Base.metadata is complete
+from backend.app.models import (  # noqa: F401
     AlertEvent,
     ChatMessage,
     ChatSession,
@@ -35,15 +36,6 @@ from backend.app.services.risk_service import RiskService
 
 @pytest.fixture
 def shared_session_factory():
-    """In-memory SQLite that shares ONE connection via StaticPool.
-
-    The standard sqlite+pysqlite:///:memory: URI creates a fresh, empty
-    database for every new connection.  When TestClient runs the ASGI app in
-    a background thread, SQLAlchemy opens a second connection from the pool
-    and gets an empty DB — hence 'no such table'.  StaticPool forces every
-    checkout to reuse the same underlying connection, so all code (test body
-    AND endpoint handler) sees the same in-memory database.
-    """
     engine = create_engine(
         "sqlite+pysqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -61,10 +53,6 @@ def shared_session_factory():
     engine.dispose()
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 _HIGH_RISK_ANALYSIS = AnalysisResult(
     emotion_label="hopelessness",
     emotion_scores={"hopelessness": 0.90, "sadness": 0.10},
@@ -77,7 +65,6 @@ _HIGH_RISK_ANALYSIS = AnalysisResult(
 
 
 def _make_container(session_factory, nlp_service=None) -> AppContainer:
-    """Build a test AppContainer wired to an in-memory SQLite database."""
     nlp = nlp_service or StubNLPService()
     context_service = ContextService(session_factory=session_factory)
     prompt_service = PromptService(context_service=context_service)
@@ -106,21 +93,15 @@ def _make_container(session_factory, nlp_service=None) -> AppContainer:
 
 
 def _parse_sse(text: str) -> list[dict]:
-    """Parse a raw SSE response body into a list of {event, data} dicts.
-
-    sse-starlette uses CRLF (\\r\\n) line endings; normalise before splitting.
-    """
-    # Normalise CRLF → LF so we can split on double-newline uniformly.
     text = text.replace("\r\n", "\n")
     events = []
     for block in text.split("\n\n"):
         block = block.strip()
         if not block:
             continue
-        lines = block.splitlines()
         event_type = None
         data_str = None
-        for line in lines:
+        for line in block.splitlines():
             if line.startswith("event:"):
                 event_type = line[len("event:"):].strip()
             elif line.startswith("data:"):
@@ -130,39 +111,42 @@ def _parse_sse(text: str) -> list[dict]:
     return events
 
 
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
+@pytest.fixture
+def test_visitor_id(shared_session_factory) -> str:
+    with shared_session_factory.begin() as session:
+        visitor = VisitorProfile(display_name="Test Visitor", consent_accepted=True)
+        session.add(visitor)
+        session.flush()
+        return visitor.id
+
 
 @pytest.fixture
-def client(shared_session_factory):
+def client(shared_session_factory, test_visitor_id):
     app = create_app()
     container = _make_container(shared_session_factory)
     app.dependency_overrides[get_container] = lambda: container
+    app.dependency_overrides[require_visitor] = lambda: test_visitor_id
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
 
 
 @pytest.fixture
-def high_risk_client(shared_session_factory):
+def high_risk_client(shared_session_factory, test_visitor_id):
     app = create_app()
     container = _make_container(
         shared_session_factory,
         nlp_service=StubNLPService(fixed_result=_HIGH_RISK_ANALYSIS),
     )
     app.dependency_overrides[get_container] = lambda: container
+    app.dependency_overrides[require_visitor] = lambda: test_visitor_id
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
 
 
-# ---------------------------------------------------------------------------
-# Session endpoint tests
-# ---------------------------------------------------------------------------
-
 def test_create_session(client):
-    resp = client.post("/api/v1/sessions", json={})
+    resp = client.post("/api/v1/sessions")
     assert resp.status_code == 201
     body = resp.json()
     assert "visitor_id" in body and body["visitor_id"]
@@ -170,13 +154,13 @@ def test_create_session(client):
 
 
 def test_create_session_with_display_name(client):
-    resp = client.post("/api/v1/sessions", json={"display_name": "Alice"})
+    resp = client.post("/api/v1/sessions")
     assert resp.status_code == 201
     assert resp.json()["session_id"]
 
 
 def test_get_session(client):
-    session_id = client.post("/api/v1/sessions", json={}).json()["session_id"]
+    session_id = client.post("/api/v1/sessions").json()["session_id"]
     resp = client.get(f"/api/v1/sessions/{session_id}")
     assert resp.status_code == 200
     body = resp.json()
@@ -190,12 +174,19 @@ def test_get_session_not_found(client):
     assert resp.status_code == 404
 
 
-# ---------------------------------------------------------------------------
-# Chat stream endpoint tests
-# ---------------------------------------------------------------------------
+def test_list_sessions_returns_all_history(client):
+    session_ids = [client.post("/api/v1/sessions").json()["session_id"] for _ in range(12)]
+
+    resp = client.get("/api/v1/sessions")
+    assert resp.status_code == 200
+    sessions = resp.json()["sessions"]
+
+    assert len(sessions) == 12
+    assert {s["session_id"] for s in sessions} == set(session_ids)
+
 
 def test_stream_normal_turn(client):
-    session_id = client.post("/api/v1/sessions", json={}).json()["session_id"]
+    session_id = client.post("/api/v1/sessions").json()["session_id"]
     resp = client.post(
         f"/api/v1/chat/{session_id}/stream",
         json={"message": "我最近睡不好觉，感觉很焦虑"},
@@ -210,7 +201,7 @@ def test_stream_normal_turn(client):
     assert "alert" not in event_types
 
     meta = events[0]["data"]
-    assert meta["risk_level"] == "L0"
+    assert meta["risk_level"] == "L1"
     assert meta["emotion"] == "anxiety"
 
     complete = events[-1]["data"]
@@ -219,7 +210,7 @@ def test_stream_normal_turn(client):
 
 
 def test_stream_high_risk_turn(high_risk_client):
-    session_id = high_risk_client.post("/api/v1/sessions", json={}).json()["session_id"]
+    session_id = high_risk_client.post("/api/v1/sessions").json()["session_id"]
     resp = high_risk_client.post(
         f"/api/v1/chat/{session_id}/stream",
         json={"message": "我真的不想活了"},
@@ -249,7 +240,7 @@ def test_stream_unknown_session(client):
 
 
 def test_stream_empty_message(client):
-    session_id = client.post("/api/v1/sessions", json={}).json()["session_id"]
+    session_id = client.post("/api/v1/sessions").json()["session_id"]
     resp = client.post(
         f"/api/v1/chat/{session_id}/stream",
         json={"message": ""},
@@ -258,11 +249,10 @@ def test_stream_empty_message(client):
 
 
 def test_stream_persists_messages(client, shared_session_factory):
-    """Verify DB persistence: after a turn, chat_messages table has 2 rows."""
     from sqlalchemy import select
     from backend.app.models.chat_message import ChatMessage
 
-    session_id = client.post("/api/v1/sessions", json={}).json()["session_id"]
+    session_id = client.post("/api/v1/sessions").json()["session_id"]
     client.post(
         f"/api/v1/chat/{session_id}/stream",
         json={"message": "今天心情不太好"},
@@ -272,4 +262,4 @@ def test_stream_persists_messages(client, shared_session_factory):
         count = db.execute(
             select(ChatMessage).where(ChatMessage.session_id == session_id)
         ).scalars().all()
-    assert len(count) == 2  # user message + assistant message
+    assert len(count) == 2

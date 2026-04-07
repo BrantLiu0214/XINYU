@@ -1,14 +1,17 @@
 .card {
   border-left: 4px solid #dc2626;
-  background: #fff1f2;
-  border-radius: 0 8px 8px 0;
+  background: linear-gradient(135deg, #fff1f2 0%, #fef2f2 100%);
+  border-radius: 0 12px 12px 0;
   padding: 0.75rem 1rem;
   margin-bottom: 0.75rem;
   font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.10);
 }
 
 .header {
   font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
   color: #991b1b;
   margin-bottom: 0.5rem;
 }

@@ -15,6 +15,8 @@ class ContextWindow(BaseModel):
     covered_until_message_id: str | None = None
     recent_messages: list[dict[str, str]] = Field(default_factory=list)
     latest_risk_level: str | None = None
+    emotion_history: list[str] = Field(default_factory=list)
+    emotion_trend: str = "stable"  # "escalating" | "stable" | "de-escalating"
 
 
 class PromptBundle(BaseModel):

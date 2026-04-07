@@ -1,4 +1,5 @@
 import type { AlertPayload, CompletePayload, MetaPayload } from '../types';
+import { authHeaders } from '../auth';
 
 interface StreamCallbacks {
   onMeta: (meta: MetaPayload) => void;
@@ -47,7 +48,7 @@ export async function streamChat(
   try {
     response = await fetch(`/api/v1/chat/${sessionId}/stream`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify({ message }),
     });
   } catch (err) {

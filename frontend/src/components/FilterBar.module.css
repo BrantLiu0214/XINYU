@@ -1,0 +1,53 @@
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #dde3ea;
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+}
+
+.input,
+.select {
+  padding: 0.32rem 0.6rem;
+  border: 1.5px solid #dde3ea;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  background: #fff;
+  min-width: 120px;
+  outline: none;
+  color: #334155;
+  box-sizing: border-box;
+}
+
+.input:focus,
+.select:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.15);
+}
+
+.clearBtn {
+  padding: 0.32rem 0.65rem;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: #dc2626;
+  background: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.clearBtn:hover {
+  background: #fee2e2;
+}
+
+.count {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-left: auto;
+  white-space: nowrap;
+}

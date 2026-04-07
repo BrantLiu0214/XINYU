@@ -41,6 +41,23 @@ export interface SessionSummary {
   started_at: string;
   message_count: number;
   dominant_emotion?: string;
+  visitor_username?: string;
+  visitor_real_name?: string;
+  visitor_college?: string;
+  visitor_student_id?: string;
+  visitor_is_guest?: boolean;
+}
+
+export interface VisitorSummary {
+  visitor_id: string;
+  username: string | null;
+  real_name: string | null;
+  college: string | null;
+  student_id: string | null;
+  is_guest: boolean;
+  created_at: string;
+  session_count: number;
+  latest_risk_level: RiskLevel | null;
 }
 
 export interface DashboardStats {
@@ -81,4 +98,21 @@ export interface UserSession {
   started_at: string;
   message_count: number;
   latest_risk_level: RiskLevel;
+}
+
+export interface CounselorSummary {
+  counselor_id: string;
+  username: string;
+  display_name: string | null;
+  college: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface MeInfo {
+  user_id: string;
+  role: string;
+  username: string;
+  display_name: string | null;
+  college: string | null;
 }

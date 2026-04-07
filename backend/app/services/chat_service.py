@@ -169,12 +169,17 @@ class ChatService:
             ).all()
         return [str(r) for r in rows]
 
+    _RISK_ORDER: dict[str, int] = {"L0": 0, "L1": 1, "L2": 2, "L3": 3}
+
     def _update_session_risk_level(self, session_id: str, risk_level: str) -> None:
+        """Only raise the stored level — never lower it, so it reflects the session peak."""
         with self._session_factory() as session:
             chat_session = session.get(ChatSession, session_id)
             if chat_session is not None:
-                chat_session.latest_risk_level = RiskLevel(risk_level)
-                session.commit()
+                current = chat_session.latest_risk_level.value
+                if self._RISK_ORDER.get(risk_level, 0) > self._RISK_ORDER.get(current, 0):
+                    chat_session.latest_risk_level = RiskLevel(risk_level)
+                    session.commit()
 
     def _persist_turn(
         self,

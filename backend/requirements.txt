@@ -1,11 +1,8 @@
-fastapi>=0.115,<1.0
-uvicorn>=0.34,<1.0
-pydantic>=2.10,<3.0
-pydantic-settings>=2.8,<3.0
-pytest>=8.3,<9.0
-pytest-asyncio>=0.24,<1.0
-sqlalchemy>=2.0,<3.0
-alembic>=1.14,<2.0
-psycopg[binary]>=3.2,<4.0
-openai>=1.0,<2.0
-sse-starlette>=1.6,<2.0
+# Dependencies are now managed via pyproject.toml at the project root.
+# Use uv to install:
+#
+#   uv sync              # runtime + dev deps
+#   uv sync --group nlp  # also install NLP training deps
+#
+# To generate a pip-compatible requirements file:
+#   uv export --no-hashes -o backend/requirements.lock.txt

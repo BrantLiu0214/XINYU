@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     # When empty, StubNLPService is used and the backend starts without torch.
     nlp_model_path: str = ""
 
+    # JWT authentication
+    jwt_secret_key: str = "change-me-in-production"
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 60 * 24 * 7  # 7 days
+
     model_config = SettingsConfigDict(
         env_prefix="XINYU_",
         env_file=str(_ENV_FILE),

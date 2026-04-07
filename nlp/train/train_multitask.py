@@ -146,8 +146,8 @@ def train(args: argparse.Namespace) -> None:
         args.train, EMOTION_LABELS, "emotion_label", device)
     intent_weights = _compute_class_weights(
         args.train, INTENT_LABELS, "intent_label", device)
-    ce_emotion = nn.CrossEntropyLoss(weight=emotion_weights)
-    ce_intent  = nn.CrossEntropyLoss(weight=intent_weights)
+    ce_emotion = nn.CrossEntropyLoss(weight=emotion_weights, label_smoothing=0.10)
+    ce_intent  = nn.CrossEntropyLoss(weight=intent_weights, label_smoothing=0.10)
     mse_loss = nn.MSELoss()
     bce_loss = nn.BCELoss()
 

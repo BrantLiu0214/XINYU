@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import type { MessageWithAnalysis } from '../types';
 import type { ChartPoint } from '../components/EmotionChart';
 import { EmotionChart } from '../components/EmotionChart';
+import { authHeaders } from '../auth';
 import styles from './SessionDetailPage.module.css';
 
 export function SessionDetailPage() {
@@ -13,7 +14,7 @@ export function SessionDetailPage() {
 
   useEffect(() => {
     if (!sessionId) return;
-    fetch(`/api/v1/dashboard/sessions/${sessionId}/messages`)
+    fetch(`/api/v1/dashboard/sessions/${sessionId}/messages`, { headers: authHeaders() })
       .then(r => {
         if (r.status === 404) { setNotFound(true); return null; }
         return r.json();

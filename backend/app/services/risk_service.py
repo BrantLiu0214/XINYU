@@ -44,6 +44,10 @@ class RiskService:
             l2_hits
             or analysis.risk_aux_score >= 0.50
             or (analysis.emotion_label == "hopelessness" and analysis.intensity_score >= 0.65)
+            or (
+                analysis.emotion_label in {"hopelessness", "sadness", "shame"}
+                and analysis.intensity_score >= 0.70
+            )
             or escalating
         ):
             risk_level = "L2"
@@ -51,7 +55,14 @@ class RiskService:
             suggested = "standard"
 
         # L1: elevated but not warning
-        elif analysis.risk_aux_score >= 0.25 or analysis.intensity_score >= 0.60:
+        elif (
+            analysis.risk_aux_score >= 0.25
+            or analysis.intensity_score >= 0.60
+            or (
+                analysis.emotion_label in {"anxiety", "sadness", "fear", "shame"}
+                and analysis.intensity_score >= 0.45
+            )
+        ):
             risk_level = "L1"
             risk_score = max(0.30, analysis.risk_aux_score)
             suggested = "none"

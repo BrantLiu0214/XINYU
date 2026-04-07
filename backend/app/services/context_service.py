@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from backend.app.models import ChatMessage, ChatSession, ConversationSummary
 from backend.app.models.enums import ChatRole
+from backend.app.models.message_analysis import MessageAnalysis
 from backend.app.schemas.prompt import ContextWindow
 
 logger = logging.getLogger(__name__)
@@ -17,6 +18,21 @@ SUMMARY_REFRESH_INTERVAL = 4
 SUMMARY_WINDOW_LIMIT = 6
 RECENT_WINDOW_FALLBACK_LIMIT = 10
 SUMMARY_SNIPPET_LIMIT = 80
+EMOTION_HISTORY_LIMIT = 5
+
+# Severity scores used for trend computation (higher = more distressed)
+_SEVERITY: dict[str, int] = {
+    "neutral": 0,
+    "anxiety": 1, "fear": 1,
+    "sadness": 2, "anger": 2, "shame": 2,
+    "hopelessness": 3,
+}
+
+_EMOTION_LABELS_ZH: dict[str, str] = {
+    "neutral": "平静", "anxiety": "焦虑", "fear": "恐惧",
+    "sadness": "悲伤", "anger": "愤怒", "shame": "羞耻",
+    "hopelessness": "绝望",
+}
 
 
 class ContextService:
@@ -33,11 +49,16 @@ class ContextService:
             chat_session = self._get_chat_session(session, session_id)
             summary = self._get_summary(session, session_id)
             messages = self._list_messages(session, session_id)
+            emotion_history = self._load_emotion_history(session, session_id)
+
+        emotion_trend = self._compute_emotion_trend(emotion_history)
 
         if summary is None:
             return ContextWindow(
                 recent_messages=self._serialize_messages(messages[-RECENT_WINDOW_FALLBACK_LIMIT:]),
                 latest_risk_level=chat_session.latest_risk_level.value,
+                emotion_history=emotion_history,
+                emotion_trend=emotion_trend,
             )
 
         recent_messages = self._select_recent_messages(messages, summary)
@@ -47,6 +68,8 @@ class ContextService:
             covered_until_message_id=summary.covered_until_message_id,
             recent_messages=self._serialize_messages(recent_messages),
             latest_risk_level=chat_session.latest_risk_level.value,
+            emotion_history=emotion_history,
+            emotion_trend=emotion_trend,
         )
 
     async def refresh_summary_if_needed(self, session_id: str) -> None:
@@ -217,6 +240,41 @@ class ContextService:
             if message.id == message_id:
                 return index
         return None
+
+    def _load_emotion_history(
+        self, session: Session, session_id: str, limit: int = EMOTION_HISTORY_LIMIT
+    ) -> list[str]:
+        """Return emotion labels for the most recent user messages, oldest-first."""
+        rows = session.execute(
+            select(MessageAnalysis.emotion_label)
+            .join(ChatMessage, ChatMessage.id == MessageAnalysis.message_id)
+            .where(
+                ChatMessage.session_id == session_id,
+                ChatMessage.role == ChatRole.USER,
+            )
+            .order_by(ChatMessage.sequence_no.desc())
+            .limit(limit)
+        ).scalars().all()
+        return list(reversed(rows))  # return in chronological order
+
+    @staticmethod
+    def _compute_emotion_trend(history: list[str]) -> str:
+        """Return 'escalating', 'stable', or 'de-escalating' based on severity scores.
+
+        Requires at least 3 data points; returns 'stable' otherwise.
+        Early window: average of first (n-2) entries vs. average of last 2.
+        Threshold: ±0.5 severity points constitutes a meaningful change.
+        """
+        if len(history) < 3:
+            return "stable"
+        scores = [_SEVERITY.get(e, 0) for e in history]
+        early_avg = sum(scores[:-2]) / len(scores[:-2])
+        recent_avg = sum(scores[-2:]) / 2
+        if recent_avg > early_avg + 0.5:
+            return "escalating"
+        if recent_avg < early_avg - 0.5:
+            return "de-escalating"
+        return "stable"
 
     def _truncate_text(self, text: str) -> str:
         normalized = " ".join(text.split())

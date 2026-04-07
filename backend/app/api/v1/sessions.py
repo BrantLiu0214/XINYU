@@ -1,15 +1,15 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from sqlalchemy import func, select
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from backend.app.dependencies.auth import require_visitor
 from backend.app.dependencies.services import AppContainer, get_container
 from backend.app.models.chat_message import ChatMessage
 from backend.app.models.chat_session import ChatSession
-from backend.app.models.visitor_profile import VisitorProfile
+from backend.app.models.enums import ChatRole
 from backend.app.schemas.session import (
-    CreateSessionRequest,
     CreateSessionResponse,
     SessionDetailResponse,
     VisitorSessionListResponse,
@@ -21,28 +21,14 @@ router = APIRouter(tags=["sessions"])
 
 @router.post("", response_model=CreateSessionResponse, status_code=201)
 async def create_session(
-    body: CreateSessionRequest,
+    visitor_id: str = Depends(require_visitor),
     container: AppContainer = Depends(get_container),
 ) -> CreateSessionResponse:
-    """Create a chat session. If visitor_id is provided, reuse that visitor; otherwise create a new one."""
+    """Create a new chat session for the authenticated visitor."""
     with container.session_factory() as db:
-        if body.visitor_id:
-            visitor = db.get(VisitorProfile, body.visitor_id)
-            if visitor is None:
-                raise HTTPException(status_code=404, detail="Visitor not found")
-        else:
-            visitor = VisitorProfile(
-                display_name=body.display_name,
-                consent_accepted=True,
-            )
-            db.add(visitor)
-            db.flush()
-
-        session = ChatSession(visitor_id=visitor.id)
+        session = ChatSession(visitor_id=visitor_id)
         db.add(session)
         db.flush()
-
-        visitor_id = visitor.id
         session_id = session.id
         db.commit()
 
@@ -51,10 +37,10 @@ async def create_session(
 
 @router.get("", response_model=VisitorSessionListResponse)
 async def list_visitor_sessions(
-    visitor_id: str,
+    visitor_id: str = Depends(require_visitor),
     container: AppContainer = Depends(get_container),
 ) -> VisitorSessionListResponse:
-    """Return all sessions for a visitor, newest-first (limit 10)."""
+    """Return all sessions for the authenticated visitor, newest-first."""
     with container.session_factory() as db:
         msg_count_sq = (
             select(
@@ -70,7 +56,6 @@ async def list_visitor_sessions(
             .outerjoin(msg_count_sq, ChatSession.id == msg_count_sq.c.session_id)
             .where(ChatSession.visitor_id == visitor_id)
             .order_by(ChatSession.started_at.desc())
-            .limit(10)
         ).all()
 
     sessions = [
@@ -88,16 +73,49 @@ async def list_visitor_sessions(
 @router.get("/{session_id}", response_model=SessionDetailResponse)
 async def get_session(
     session_id: str,
+    visitor_id: str = Depends(require_visitor),
     container: AppContainer = Depends(get_container),
 ) -> SessionDetailResponse:
-    """Return basic info for an existing session."""
+    """Return basic info for a session owned by the authenticated visitor."""
     with container.session_factory() as db:
         session = db.get(ChatSession, session_id)
         if session is None:
             raise HTTPException(status_code=404, detail="Session not found")
+        if session.visitor_id != visitor_id:
+            raise HTTPException(status_code=403, detail="Forbidden")
         return SessionDetailResponse(
             session_id=session.id,
             visitor_id=session.visitor_id,
             latest_risk_level=session.latest_risk_level.value,
             started_at=session.started_at,
         )
+
+
+@router.get("/{session_id}/messages")
+async def get_session_messages(
+    session_id: str,
+    visitor_id: str = Depends(require_visitor),
+    container: AppContainer = Depends(get_container),
+) -> dict:
+    """Return messages for a session owned by the authenticated visitor."""
+    with container.session_factory() as db:
+        session = db.get(ChatSession, session_id)
+        if session is None:
+            raise HTTPException(status_code=404, detail="Session not found")
+        if session.visitor_id != visitor_id:
+            raise HTTPException(status_code=403, detail="Forbidden")
+        msgs = db.execute(
+            select(ChatMessage)
+            .where(ChatMessage.session_id == session_id)
+            .order_by(ChatMessage.sequence_no)
+        ).scalars().all()
+    return {
+        "messages": [
+            {
+                "message_id": m.id,
+                "role": m.role.value if isinstance(m.role, ChatRole) else m.role,
+                "content": m.content,
+            }
+            for m in msgs
+        ]
+    }
